@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Fichas Técnicas da APS </title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        [x-cloak] { display: none !important; }
+        
+        /* Custom scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full overflow-hidden text-slate-900 antialiased" x-data="painelApp()" x-cloak>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- BARRA LATERAL (SIDEBAR) -->
+        <aside class="hidden md:flex w-80 flex-col bg-slate-900 text-slate-100 border-r border-slate-800 shrink-0">
+            <!-- Header do Sidebar -->
+            <div class="p-6 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center font-bold text-slate-900 shadow-lg shadow-teal-500/20">
+                        SYS
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-sm tracking-tight">Fichas Técnicas APS</h1>
+                        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Ministério da Saúde - 2026</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="space-y-1">
+                    <button @click="mudarAba('inicio')" :class="activeTab === 'inicio' ? 'bg-teal-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-300'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs transition-all duration-200">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Início & Busca de Códigos
+                    </button>
+                    
+                    <button @click="mudarAba('nt30')" :class="activeTab === 'nt30' ? 'bg-teal-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-300'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs transition-all duration-200">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        NT 30/2025: Vínculo & Território
+                    </button>
+                </div>
+
+                <nav class="space-y-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4">Módulos de Gestão</p>
+
+                    <!-- GRUPO 1: ATENÇÃO PRIMÁRIA (C1-C7) -->
+                    <div class="space-y-1">
+                        <button @click="apMenuOpen = !apMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-teal-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span class="font-bold text-slate-200">Atenção Primária</span>
+                            </span>
+                            <svg :class="apMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="apMenuOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'ap')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-teal-500/20 text-teal-300 font-bold border-l-2 border-teal-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO 2: EMULTI (M1-M2) -->
+                    <div class="space-y-1">
+                        <button @click="emultiMenuOpen = !emultiMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span class="font-bold text-slate-200">Equipes eMulti</span>
+                            </span>
+                            <svg :class="emultiMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="emultiMenuOpen" x-transition:enter="transition ease-out duration-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'emulti')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-emerald-500/20 text-emerald-300 font-bold border-l-2 border-emerald-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO 3: SAÚDE PRISIONAL (P1-P6) -->
+                    <div class="space-y-1">
+                        <button @click="prisionalMenuOpen = !prisionalMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span class="font-bold text-slate-200">Saúde Prisional</span>
+                            </span>
+                            <svg :class="prisionalMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="prisionalMenuOpen" x-transition:enter="transition ease-out duration-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'prisional')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-purple-500/20 text-purple-300 font-bold border-l-2 border-purple-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO 4: CONSULTÓRIO NA RUA (CR1-CR4) -->
+                    <div class="space-y-1">
+                        <button @click="ruaMenuOpen = !ruaMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                <span class="font-bold text-slate-200">Consultório na Rua</span>
+                            </span>
+                            <svg :class="ruaMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="ruaMenuOpen" x-transition:enter="transition ease-out duration-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'rua')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-sky-500/20 text-sky-300 font-bold border-l-2 border-sky-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO 5: FAMÍLIA RIBEIRINHA (R1-R6) -->
+                    <div class="space-y-1">
+                        <button @click="ribeirinhaMenuOpen = !ribeirinhaMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="font-bold text-slate-200">Família Ribeirinha</span>
+                            </span>
+                            <svg :class="ribeirinhaMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="ribeirinhaMenuOpen" x-transition:enter="transition ease-out duration-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'ribeirinha')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-cyan-500/20 text-cyan-300 font-bold border-l-2 border-cyan-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- GRUPO 6: SAÚDE BUCAL (B1-B6) -->
+                    <div class="space-y-1">
+                        <button @click="bucalMenuOpen = !bucalMenuOpen" class="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-800 text-slate-400 rounded-lg text-xs transition-all duration-200">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="font-bold text-slate-200">Saúde Bucal</span>
+                            </span>
+                            <svg :class="bucalMenuOpen ? 'rotate-180' : ''" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="bucalMenuOpen" x-transition:enter="transition ease-out duration-100" class="pl-4 space-y-1">
+                            <template x-for="item in faturamento.filter(f => f.modulo === 'bucal')">
+                                <button @click="mudarAba(item.id)" :class="activeTab === item.id ? 'bg-amber-500/20 text-amber-300 font-bold border-l-2 border-amber-500' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'" class="w-full text-left px-4 py-2 rounded text-[11px] transition-all duration-150 truncate">
+                                    <span x-text="item.id.toUpperCase() + ': ' + item.tituloCurto"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- CONTAINER PRINCIPAL -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
+
+            <!-- BARRA SUPERIOR (TOPBAR) -->
+            <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0 z-10">
+                <div class="flex items-center gap-3">
+                    <button @click="sidebarMobileOpen = true" class="md:hidden text-slate-600 hover:text-slate-900 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                    <span class="text-xs sm:text-sm font-bold text-slate-800" x-text="obterTituloTopo()"></span>
+                </div>
+
+                <!-- Campo de Pesquisa Unificada -->
+                <div class="relative w-64 sm:w-96 max-w-full">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="text" x-model="searchQuery" @input="processarBusca()" placeholder="Buscar CID, CIAP-2, CBO ou Código SIGTAP..." class="w-full pl-10 pr-4 py-2 bg-slate-100 border-0 focus:bg-white focus:ring-2 focus:ring-teal-500 text-xs rounded-xl transition-all">
+                    
+                    <!-- Dropdown de Resultados Instantâneos -->
+                    <div x-show="searchQuery.trim().length > 0 && searchResults.length > 0" class="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto">
+                        <template x-for="res in searchResults">
+                            <div @click="irParaResultado(res.id)" class="px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded" :class="res.tipo === 'CBO' ? 'bg-indigo-100 text-indigo-800' : 'bg-rose-100 text-rose-800'" x-text="res.tipo"></span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono-custom" x-text="res.codigo"></span>
+                                </div>
+                                <p class="text-[11px] font-semibold text-slate-900" x-text="res.descricao"></p>
+                                <p class="text-[9px] text-slate-400 mt-0.5">Mapeado em: <strong class="text-slate-600" x-text="res.ficha"></strong></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTEÚDO PRINCIPAL COM SCROLL -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                <!-- ABA 0: INÍCIO / BUSCA -->
+                <div x-show="activeTab === 'inicio'" class="space-y-6">
+                    <div class="bg-gradient-to-r from-teal-800 to-slate-900 text-white rounded-2xl p-8 shadow-xl relative overflow-hidden">
+                        <div class="max-w-2xl relative z-10">
+                            <span class="text-[10px] font-extrabold uppercase bg-teal-500/30 text-teal-300 px-2.5 py-1 rounded-full tracking-widest">Painel Assistencial Completo</span>
+                            <h2 class="text-2xl sm:text-3xl font-black mt-3 leading-tight">Fichas Metodológicas e Notas Técnicas APS 2026</h2>
+                            <p class="text-slate-300 text-xs sm:text-sm mt-3 leading-relaxed">Acesse as notas metodológicas, regras de cofinanciamento federal, CBOs autorizados e os procedimentos do Prontuário Eletrônico do Cidadão (PEC) diretamente da base de dados oficial.</p>
+                        </div>
+                    </div>
+
+                    <!-- Busca Unificada Grande -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-sm">Pesquisa Global de Parâmetros</h3>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </span>
+                            <input type="text" x-model="searchQuery" @input="processarBusca()" placeholder="Digite códigos ou termos (ex: 2251-42, diabetes, preventivo, exodontia...)" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-500/10 text-xs rounded-xl font-medium transition-all shadow-inner">
+                        </div>
+                    </div>
+
+                    <!-- Módulos Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div @click="mudarAba('c1')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-300 cursor-pointer transition-all space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center text-teal-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Atenção Primária</h4>
+                                <p class="text-xs text-slate-400 mt-1">Acompanhamento C1 a C7 para equipes de Saúde da Família e eAP (Gestação, idosos, hipertensos e diabéticos).</p>
+                            </div>
+                        </div>
+
+                        <div @click="mudarAba('m1')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 cursor-pointer transition-all space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Equipes eMulti</h4>
+                                <p class="text-xs text-slate-400 mt-1">Acompanhamento M1 e M2. Média de atendimentos individuais/coletivos e ações compartilhadas interprofissionais.</p>
+                            </div>
+                        </div>
+
+                        <div @click="mudarAba('p1')" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-purple-300 cursor-pointer transition-all space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Saúde Prisional</h4>
+                                <p class="text-xs text-slate-400 mt-1">Acompanhamento P1 a P6. Parâmetros assistenciais e preventivos para equipes eAPP do Sistema Prisional.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA 1: NOTA TÉCNICA 30/2025 -->
+                <div x-show="activeTab === 'nt30'" class="space-y-6">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-800">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-extrabold text-amber-800 uppercase tracking-widest block">Documento de Origem Verbatim</span>
+                                <h4 class="font-bold text-slate-900 text-xs font-mono-custom">nota-tecnica-no-30-2025-cgesco-desco-saps-ms.pdf</h4>
+                            </div>
+                        </div>
+                        <a href="https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-all shrink-0 self-start sm:self-auto">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            Acessar Documento Oficial
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <!-- Formulário de Simulação da NT 30 -->
+                        <div class="xl:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                            <h3 class="font-bold text-slate-800 text-sm">Calculadora de Componentes Assistenciais</h3>
+                            
+                            <!-- Dimensão Cadastro -->
+                            <div class="space-y-4 border-b border-slate-100 pb-6">
+                                <h4 class="font-bold text-xs text-teal-600 uppercase tracking-widest">1. Dimensão Cadastro (Peso: 30%)</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Pessoas com cadastro individual ativo (MICI)</label>
+                                        <input type="number" x-model.number="nt35.mici" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Pessoas com cadastro completo (MICI + MICDT)</label>
+                                        <input type="number" x-model.number="nt35.completo" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dimensão Acompanhamento -->
+                            <div class="space-y-4 border-b border-slate-100 pb-6">
+                                <h4 class="font-bold text-xs text-teal-600 uppercase tracking-widest">2. Dimensão Acompanhamento (Peso: 70%)</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Acompanhados sem critérios adicionais</label>
+                                        <input type="number" x-model.number="nt35.sem" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Idosas ou Crianças (Fator 1.2)</label>
+                                        <input type="number" x-model.number="nt35.idade" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Beneficiárias BPC ou Bolsa Família (Fator 1.3)</label>
+                                        <input type="number" x-model.number="nt35.vulnerabilidade" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Idosas/Crianças + BPC/PBF (Fator 2.5)</label>
+                                        <input type="number" x-model.number="nt35.idadeVulnerabilidade" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Outros Parâmetros -->
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-xs text-teal-600 uppercase tracking-widest">3. Parâmetros Territoriais & Avaliação</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">População de Parâmetro da Equipe</label>
+                                        <input type="number" x-model.number="nt35.parametro" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Pesquisas 'Meu SUS Digital' preenchidas</label>
+                                        <input type="number" x-model.number="nt35.pesquisas" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 text-xs rounded-lg">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Painel de Resultados Finais -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-6">
+                            <h3 class="font-bold text-slate-800 text-sm">Resumo do Escore Final</h3>
+                            
+                            <!-- Escore Cadastro -->
+                            <div class="p-4 bg-slate-50 rounded-xl space-y-1">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Índice Ponderado de Cadastro</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xl font-black text-slate-900" x-text="calcularEscoreCadastro().indice.toFixed(1) + '%'"></span>
+                                    <span class="text-xs font-bold text-teal-600" x-text="calcularEscoreCadastro().escore.toFixed(2) + ' pts'"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] text-slate-400">
+                                    <span>Classificação:</span>
+                                    <span class="font-bold text-slate-700" x-text="calcularEscoreCadastro().classificacao"></span>
+                                </div>
+                            </div>
+
+                            <!-- Escore Acompanhamento -->
+                            <div class="p-4 bg-slate-50 rounded-xl space-y-1">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Índice Ponderado de Acompanhamento</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xl font-black text-slate-900" x-text="calcularEscoreAcompanhamento().indice.toFixed(1) + '%'"></span>
+                                    <span class="text-xs font-bold text-teal-600" x-text="calcularEscoreAcompanhamento().escore.toFixed(2) + ' pts'"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] text-slate-400">
+                                    <span>Pontos SUS Digital:</span>
+                                    <span class="font-bold text-emerald-600" x-text="'+' + calcularEscoreAcompanhamento().extra.toFixed(2)"></span>
+                                </div>
+                            </div>
+
+                            <!-- Escore Final -->
+                            <div class="p-4 bg-teal-500 rounded-xl text-slate-950 space-y-1 shadow-lg shadow-teal-500/10">
+                                <span class="text-[10px] font-bold uppercase tracking-wider block">Resultado Final</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-2xl font-black" x-text="(calcularEscoreCadastro().escore + calcularEscoreAcompanhamento().escore).toFixed(2) + ' pts'"></span>
+                                    <span class="text-xs font-extrabold uppercase bg-slate-900 text-white px-2.5 py-1 rounded" x-text="obterClassificacaoFinal()"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTAINER GERAL DE NOTAS METODOLÓGICAS (C1 a B6) -->
+                <template x-for="item in faturamento">
+                    <div x-show="activeTab === item.id" class="space-y-6">
+                        
+                        <!-- Box Verbatim Inteligente com Links de Download Direto -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-800">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-extrabold text-amber-800 uppercase tracking-widest block">Documento de Origem Verbatim</span>
+                                    <h4 class="font-bold text-slate-900 text-xs font-mono-custom" x-text="item.arquivoVerbatim"></h4>
+                                </div>
+                            </div>
+                            <a href="https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-all shrink-0 self-start sm:self-auto">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                Acessar Documento Oficial
+                            </a>
+                        </div>
+
+                        <!-- Abas internas da ficha -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <div class="border-b border-slate-100 bg-slate-50 flex overflow-x-auto">
+                                <button @click="item.subTab = 'qualificacao'" :class="item.subTab === 'qualificacao' ? 'border-b-2 border-teal-500 text-teal-600 font-bold' : 'text-slate-500 hover:text-slate-800'" class="px-5 py-3.5 text-xs transition-all shrink-0">Ficha de Qualificação</button>
+                                <button @click="item.subTab = 'cbos'" :class="item.subTab === 'cbos' ? 'border-b-2 border-teal-500 text-teal-600 font-bold' : 'text-slate-500 hover:text-slate-800'" class="px-5 py-3.5 text-xs transition-all shrink-0">CBOs Permitidos</button>
+                                <button @click="item.subTab = 'procedimentos'" :class="item.subTab === 'procedimentos' ? 'border-b-2 border-teal-500 text-teal-600 font-bold' : 'text-slate-500 hover:text-slate-800'" class="px-5 py-3.5 text-xs transition-all shrink-0">Procedimentos & Registros</button>
+                                <button @click="item.subTab = 'simulador'" :class="item.subTab === 'simulador' ? 'border-b-2 border-teal-500 text-teal-600 font-bold' : 'text-slate-500 hover:text-slate-800'" class="px-5 py-3.5 text-xs transition-all shrink-0">Simulador de Resultados</button>
+                            </div>
+
+                            <div class="p-6">
+                                <!-- SUBABA 1: FICHA DE QUALIFICAÇÃO -->
+                                <div x-show="item.subTab === 'qualificacao'" class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div class="md:col-span-2 space-y-4">
+                                            <div>
+                                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Objetivo do Indicador</h4>
+                                                <p class="text-sm text-slate-600 mt-1" x-text="item.objetivo"></p>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Fórmula de Cálculo</h4>
+                                                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 mt-1.5">
+                                                    <p class="font-mono-custom text-xs text-teal-600 font-bold" x-text="item.formula"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                            <div>
+                                                <h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Periodicidade</h5>
+                                                <p class="text-xs font-semibold text-slate-700" x-text="item.periodicidade"></p>
+                                            </div>
+                                            <div>
+                                                <h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Parâmetro de Desempenho</h5>
+                                                <p class="text-xs font-semibold text-slate-700" x-text="item.parametro"></p>
+                                            </div>
+                                            <div>
+                                                <h5 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Polaridade</h5>
+                                                <p class="text-xs font-semibold text-slate-700" x-text="item.polaridade"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SUBABA 2: CBOS PERMITIDOS -->
+                                <div x-show="item.subTab === 'cbos'" class="space-y-4">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                                        <h4 class="font-bold text-slate-800 text-sm">Profissionais Habilitados</h4>
+                                        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded" x-text="item.cbos.length + ' CBO(s)'"></span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                        <template x-for="cbo in item.cbos">
+                                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-between hover:border-slate-300 transition-colors">
+                                                <span class="text-xs font-extrabold text-slate-800 font-mono-custom" x-text="cbo.codigo"></span>
+                                                <span class="text-[11px] text-slate-500 font-medium mt-1 leading-snug" x-text="cbo.descricao"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- SUBABA 3: PROCEDIMENTOS & REGISTROS -->
+                                <div x-show="item.subTab === 'procedimentos'" class="space-y-4">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                                        <h4 class="font-bold text-slate-800 text-sm">Códigos SIGTAP, CIDs e CIAP-2</h4>
+                                        <p class="text-[11px] text-slate-400">Clique para copiar o código</p>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <template x-for="proc in item.procedimentos">
+                                            <div @click="copiarCodigo(proc.codigo)" class="p-3.5 bg-slate-50 rounded-xl border border-slate-100 hover:border-teal-300 hover:bg-white cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                <div class="space-y-1">
+                                                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase" :class="proc.tipo === 'SIGTAP' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'" x-text="proc.tipo"></span>
+                                                    <p class="text-xs font-bold text-slate-800 mt-1 leading-snug" x-text="proc.descricao"></p>
+                                                </div>
+                                                <span class="text-xs font-extrabold text-slate-500 font-mono-custom bg-slate-200/50 px-2.5 py-1 rounded" x-text="proc.codigo"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- SUBABA 4: SIMULADOR DE RESULTADOS -->
+                                <div x-show="item.subTab === 'simulador'" class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div class="md:col-span-2 space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                            <h4 class="font-bold text-slate-800 text-sm">Valores da Equipe</h4>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Numerador (Pessoas Atingidas)</label>
+                                                    <input type="number" x-model.number="item.numerador" class="w-full px-3 py-2 bg-white border border-slate-200 text-xs rounded-lg font-bold">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Denominador (População Alvo)</label>
+                                                    <input type="number" x-model.number="item.denominador" class="w-full px-3 py-2 bg-white border border-slate-200 text-xs rounded-lg font-bold">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="p-6 bg-teal-500 rounded-2xl text-slate-950 flex flex-col justify-between shadow-lg shadow-teal-500/10">
+                                            <div>
+                                                <span class="text-[10px] font-bold uppercase tracking-wider block">Proporção Estimada</span>
+                                                <span class="text-3xl font-black mt-2 block" x-text="calcularProporcaoFicha(item) + '%'"></span>
+                                            </div>
+                                            <div class="mt-4 pt-4 border-t border-teal-400">
+                                                <span class="text-[10px] font-bold uppercase tracking-wider block">Classificação Gerencial</span>
+                                                <span class="text-sm font-extrabold uppercase mt-1 block" x-text="obterClassificacaoFicha(item)"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </main>
+    </div>
+
+    <!-- TOAST DE NOTIFICAÇÃO -->
+    <div x-show="toastShow" x-transition class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2 border border-slate-800">
+        <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span class="text-xs font-bold" x-text="toastMessage"></span>
+    </div>
+
+    <!-- SCRIPT ALPINE.JS E CONTROLADOR UNIFICADO -->
+    <script>
+        function painelApp() {
+            const hubBaseUrl = 'https://www.gov.br/saude/pt-br/composicao/saps/publicacoes/fichas-tecnicas';
+            
+            return {
+                activeTab: 'inicio',
+                apMenuOpen: true,
+                emultiMenuOpen: false,
+                prisionalMenuOpen: false,
+                ruaMenuOpen: false,
+                ribeirinhaMenuOpen: false,
+                bucalMenuOpen: false,
+                sidebarMobileOpen: false,
+
+                // Simulador NT 30
+                nt35: {
+                    mici: 1500,
+                    completo: 1200,
+                    sem: 1000,
+                    idade: 400,
+                    vulnerabilidade: 300,
+                    idadeVulnerabilidade: 100,
+                    parametro: 3000,
+                    pesquisas: 180
+                },
+
+                // Toast
+                toastShow: false,
+                toastMessage: '',
+
+                // Busca
+                searchQuery: '',
+                searchResults: [],
+
+                // Módulos
+                faturamento: [
+                    // ATENÇÃO PRIMÁRIA (C1-C7)
+                    {
+                        id: 'c1',
+                        modulo: 'ap',
+                        tituloCurto: 'Mais Acesso à APS',
+                        tituloCompleto: 'Mais Acesso à Atenção Primária à Saúde (APS)',
+                        arquivoVerbatim: 'Nota Metodológica C1 - Mais acesso (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c1-mais-acesso`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar o percentual de acesso de demanda programada em relação ao total de demandas (espontânea e programada) na APS.',
+                        formula: 'Proporção = (Atendimentos Programados / Total de Atendimentos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 50% e <= 70%',
+                        polaridade: 'Demanda Equilibrada',
+                        cbos: [
+                            { codigo: '2251-42', descricao: 'Médico da Estratégia de Saúde da Família' },
+                            { codigo: '2251-70', descricao: 'Médico Generalista' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' },
+                            { codigo: '2235-65', descricao: 'Enfermeiro da Estratégia de Saúde da Família' },
+                            { codigo: '2235-05', descricao: 'Enfermeiro' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.011-0', descricao: 'Consulta Pré-Natal' },
+                            { tipo: 'SIGTAP', codigo: '03.01.01.006-4', descricao: 'Consulta Médica em Atenção Primária' },
+                            { tipo: 'SIGTAP', codigo: '03.01.01.003-0', descricao: 'Consulta de Profissionais de Nível Superior na Atenção Primária (exceto médico)' }
+                        ],
+                        numerador: 1400,
+                        denominador: 2000
+                    },
+                    {
+                        id: 'c2',
+                        modulo: 'ap',
+                        tituloCurto: 'Desenvolvimento Infantil',
+                        tituloCompleto: 'Cuidado no desenvolvimento infantil na Atenção Primária à Saúde',
+                        arquivoVerbatim: 'Nota Metodológica C2 - Cuidado no desenvolvimento infantil (2).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c2-cuidado-no-desenvolvimento-infantil`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar o acesso e monitoramento de crianças até dois anos de idade em relação aos episódios de cuidados necessários, puericultura e vacinação.',
+                        formula: 'Proporção = (Somatório de Boas Práticas Realizadas / Denominador) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75% e <= 100%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' },
+                            { codigo: '5151-05', descricao: 'Agente Comunitário de Saúde (para Visita Domiciliar)' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.026-9', descricao: 'Avaliação do crescimento na puericultura' },
+                            { tipo: 'SIGTAP', codigo: '03.01.01.027-7', descricao: 'Avaliação do desenvolvimento da criança na puericultura' },
+                            { tipo: 'VACINA', codigo: '42', descricao: 'Vacina pentavalente (DTP/HepB/Hib)' },
+                            { tipo: 'VACINA', codigo: '22', descricao: 'Vacina pólio injetável (VIP)' }
+                        ],
+                        numerador: 80,
+                        denominador: 100
+                    },
+                    {
+                        id: 'c3',
+                        modulo: 'ap',
+                        tituloCurto: 'Gestação & Puerpério',
+                        tituloCompleto: 'Cuidado na gestação e puerpério na Atenção Primária à Saúde',
+                        arquivoVerbatim: 'Nota Metodológica C3 - Cuidado na gestação e puerpério (2).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c3-cuidado-na-gestacao-e-puerperio`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar o monitoramento das gestantes e puérperas com foco na captação precoce (até 12ª semana), testes rápidos, vacinas e exames.',
+                        formula: 'Proporção = (Soma de Boas Práticas Pontuadas / Total de Gestantes) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.011-0', descricao: 'Consulta Pré-Natal' },
+                            { tipo: 'SIGTAP', codigo: '02.14.01.008-2', descricao: 'Teste rápido para sífilis na gestante' },
+                            { tipo: 'VACINA', codigo: '57', descricao: 'Vacina dTpa adulto' }
+                        ],
+                        numerador: 78,
+                        denominador: 100
+                    },
+                    {
+                        id: 'c4',
+                        modulo: 'ap',
+                        tituloCurto: 'Pessoa com Diabetes',
+                        tituloCompleto: 'Cuidado da pessoa com diabetes na Atenção Primária à Saúde',
+                        arquivoVerbatim: 'Nota Metodológica C4 - Cuidado da pessoa com diabetes (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c4-cuidado-da-pessoa-com-diabetes`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Mensurar o monitoramento de pessoas com diabetes com foco na solicitação de hemoglobina glicada e na avaliação anual dos pés.',
+                        formula: 'Proporção = (Pessoas com Boas Práticas / Total de Diabéticos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.02.01.050-3', descricao: 'Dosagem de hemoglobina glicosilada' },
+                            { tipo: 'SIGTAP', codigo: '03.01.04.009-5', descricao: 'Exame do pé diabético' }
+                        ],
+                        numerador: 65,
+                        denominador: 100
+                    },
+                    {
+                        id: 'c5',
+                        modulo: 'ap',
+                        tituloCurto: 'Hipertensão',
+                        tituloCompleto: 'Cuidado da pessoa com hipertensão na Atenção Primária à Saúde',
+                        arquivoVerbatim: 'Nota Metodológica C5 - Cuidado da pessoa com hipertensão (2).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c5-cuidado-da-pessoa-com-hipertensao`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Idem anterior com foco no controle pressórico periódico e visitas domiciliares de acompanhamento de rotina.',
+                        formula: 'Proporção = (Soma de Boas Práticas / Total de Hipertensos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.10.003-9', descricao: 'Aferição da pressão arterial' },
+                            { tipo: 'SIGTAP', codigo: '01.01.04.002-4', descricao: 'Avaliação antropométrica' }
+                        ],
+                        numerador: 70,
+                        denominador: 100
+                    },
+                    {
+                        id: 'c6',
+                        modulo: 'ap',
+                        tituloCurto: 'Pessoa Idosa',
+                        tituloCompleto: 'Cuidado da pessoa idosa na Atenção Primária à Saúde',
+                        arquivoVerbatim: 'Nota Metodológica C6 - Cuidado da pessoa idosa (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c6-cuidado-da-pessoa-idosa`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitorar a saúde da população idosa através de consultas anuais, avaliação antropométrica e vacinação contra Influenza.',
+                        formula: 'Proporção = (Soma de Boas Práticas / Total de Idosos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'VACINA', codigo: '33', descricao: 'Vacina Influenza Trivalente' },
+                            { tipo: 'VACINA', codigo: '77', descricao: 'Vacina Influenza Tetravalente' }
+                        ],
+                        numerador: 60,
+                        denominador: 100
+                    },
+                    {
+                        id: 'c7',
+                        modulo: 'ap',
+                        tituloCurto: 'Prevenção do Câncer',
+                        tituloCompleto: 'Cuidado da mulher e do homem transgênero na prevenção do câncer na APS',
+                        arquivoVerbatim: 'Nota Metodológica C7 - Cuidado da mulher na prevenção do câncer (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-e-saude-da-familia/nota-metodologica-c7-cuidado-da-mulher-na-prevencao-do-cancer`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitorar a taxa de realização de citopatológico do colo de útero em mulheres e homens transgêneros de 25 a 64 anos, além da vacinação contra HPV.',
+                        formula: 'Proporção = (Exames Realizados / População Alvo) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251-30', descricao: 'Médico de Família e Comunidade' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.01.02.003-3', descricao: 'Coleta de citopatológico de colo uterino' },
+                            { tipo: 'SIGTAP', codigo: '02.04.03.018-8', descricao: 'Mamografia bilateral para rastreamento' },
+                            { tipo: 'VACINA', codigo: '67', descricao: 'Vacina HPV quadrivalente' }
+                        ],
+                        numerador: 55,
+                        denominador: 100
+                    },
+
+                    // EQUIPES EMULTI (M1-M2)
+                    {
+                        id: 'm1',
+                        modulo: 'emulti',
+                        tituloCurto: 'Média de Atendimentos',
+                        tituloCompleto: 'Média de atendimentos por pessoa pela eMulti na APS',
+                        arquivoVerbatim: 'Nota Metodológica M1 - Média de atendimentos por pessoa pela eMulti na APS (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-multiprofissional-em-saude-emulti`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Mensurar a média de atendimentos individuais ou coletivos pela eMulti para expandir o cuidado resolutivo.',
+                        formula: 'Média = Total de Atendimentos da eMulti / Total de Pessoas Atendidas',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 3 atendimentos',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2516-05', descricao: 'Assistente social' },
+                            { codigo: '2236-05', descricao: 'Fisioterapeuta' },
+                            { codigo: '2238-10', descricao: 'Fonoaudiólogo' },
+                            { codigo: '2237-10', descricao: 'Nutricionista' },
+                            { codigo: '2515-10', descricao: 'Psicólogo' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.003-0', descricao: 'Consulta de profissional de nível superior (exceto médico)' }
+                        ],
+                        numerador: 3500,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'm2',
+                        modulo: 'emulti',
+                        tituloCurto: 'Ações Interprofissionais',
+                        tituloCompleto: 'Ações interprofissionais compartilhadas realizadas pela eMulti',
+                        arquivoVerbatim: 'Nota Metodológica M2 - Ações interprofissionais realizadas pela eMulti na APS (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-multiprofissional-em-saude-emulti`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar a proporção de ações compartilhadas entre eMulti e outras equipes da atenção básica.',
+                        formula: 'Proporção = (Ações Compartilhadas / Total de Ações) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 5%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2516-05', descricao: 'Assistente social' },
+                            { codigo: '2237-10', descricao: 'Nutricionista' },
+                            { codigo: '2515-10', descricao: 'Psicólogo' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.015-3', descricao: 'Atendimento compartilhado/Discussão de caso' }
+                        ],
+                        numerador: 120,
+                        denominador: 2000
+                    },
+
+                    // SAÚDE PRISIONAL (P1-P6)
+                    {
+                        id: 'p1',
+                        modulo: 'prisional',
+                        tituloCurto: 'Mais Acesso',
+                        tituloCompleto: 'Mais Acesso à Atenção Primária Prisional',
+                        arquivoVerbatim: 'Nota Metodológica P1 - Mais acesso à Atenção Primária Prisional (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Mensurar o percentual de pessoas privadas de liberdade que receberam atendimento médico, de enfermagem ou odontológico nos últimos 6 meses.',
+                        formula: 'Proporção = (Atendidos nos últimos 6 meses / Total Identificado) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2251', descricao: 'Médicos clínicos' },
+                            { codigo: '2235', descricao: 'Enfermeiros e afins' },
+                            { codigo: '2232', descricao: 'Cirurgiões-dentistas' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.006-4', descricao: 'Consulta médica' }
+                        ],
+                        numerador: 800,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'p2',
+                        modulo: 'prisional',
+                        tituloCurto: 'Cuidado na Gestação',
+                        tituloCompleto: 'Cuidado na Gestação realizado pelas equipes de eAPP',
+                        arquivoVerbatim: 'Nota Metodológica P2 - Cuidado na Gestação (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar o acesso e acompanhamento do pré-natal de pessoas privadas de liberdade durante o ciclo gestacional.',
+                        formula: 'Proporção = (Gestantes Assistidas / Total de Gestantes eAPP) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiros e afins' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.011-0', descricao: 'Consulta Pré-Natal' }
+                        ],
+                        numerador: 45,
+                        denominador: 50
+                    },
+                    {
+                        id: 'p3',
+                        modulo: 'prisional',
+                        tituloCurto: 'Hipertensão & Diabetes',
+                        tituloCompleto: 'Cuidado da pessoa com diabetes e/ou hipertensão pelas eAPP',
+                        arquivoVerbatim: 'Nota Metodológica P3 - Cuidado da pessoa com diabetes e ou hipertensão (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitoramento de diabetes e hipertensão nas eAPP com exames regulares de glicose e controle pressórico.',
+                        formula: 'Proporção = (Soma de Boas Práticas / Total de Pacientes Crônicos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2251', descricao: 'Médicos clínicos' },
+                            { codigo: '2235', descricao: 'Enfermeiros e afins' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.10.003-9', descricao: 'Aferição de pressão arterial' }
+                        ],
+                        numerador: 150,
+                        denominador: 200
+                    },
+                    {
+                        id: 'p4',
+                        modulo: 'prisional',
+                        tituloCurto: 'Rastreio de IST',
+                        tituloCompleto: 'Rastreio de IST (HIV, Sífilis, Hepatites) pela equipe eAPP',
+                        arquivoVerbatim: 'Nota Metodológica P4 - Rastreio de infecções sexualmente transmissíveis (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Promoção de testagem rápida e diagnóstico oportuno para infecções transmissíveis no sistema prisional.',
+                        formula: 'Proporção = (Boas Práticas de Testagem / População Privada de Liberdade) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiros' },
+                            { codigo: '3222', descricao: 'Técnicos de Enfermagem' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.14.01.007-4', descricao: 'Teste rápido para sífilis' }
+                        ],
+                        numerador: 680,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'p5',
+                        modulo: 'prisional',
+                        tituloCurto: 'Tuberculose',
+                        tituloCompleto: 'Cuidado da pessoa com tuberculose pelas eAPP',
+                        arquivoVerbatim: 'Nota Metodológica P5 - Cuidado da Pessoa com Tuberculose.pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Assegurar exames baciloscópicos diagnósticos e Tratamento Diretamente Observado (TDO) para controle da tuberculose.',
+                        formula: 'Proporção = (Tratamentos Concluídos e Seguidos / Diagnósticos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2251', descricao: 'Médicos' },
+                            { codigo: '2235', descricao: 'Enfermeiros' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.04.019-2', descricao: 'Acompanhamento do tratamento diretamente observado (TDO)' }
+                        ],
+                        numerador: 18,
+                        denominador: 20
+                    },
+                    {
+                        id: 'p6',
+                        modulo: 'prisional',
+                        tituloCurto: 'Prevenção de Câncer',
+                        tituloCompleto: 'Cuidado da mulher na prevenção do câncer de colo de útero pela eAPP',
+                        arquivoVerbatim: 'Nota Metodológica P6 - Cuidado da mulher na prevenção do câncer (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-atencao-primaria-prisional`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Garantir preventivo de colo de útero trienal para mulheres em restrição de liberdade.',
+                        formula: 'Proporção = (Preventivos realizados nos últimos 36 meses / População Alvo) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiros' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.01.02.003-3', descricao: 'Coleta de preventivo de colo' }
+                        ],
+                        numerador: 35,
+                        denominador: 50
+                    },
+
+                    // CONSULTÓRIO NA RUA (CR1-CR4)
+                    {
+                        id: 'cr1',
+                        modulo: 'rua',
+                        tituloCurto: 'Mais Acesso eCR',
+                        tituloCompleto: 'Mais Acesso à equipe de Consultório na Rua (eCR)',
+                        arquivoVerbatim: 'Nota metodológica CR1 - Mais acesso à eCR (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-consultorio-na-rua`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar a cobertura de atendimentos de profissionais médicos, enfermeiros ou cirurgiões-dentistas à população identificada em situação de rua.',
+                        formula: 'Proporção = (Atendidos / Total Identificado nos últimos 12 meses) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251', descricao: 'Médicos clínicos' },
+                            { codigo: '2232', descricao: 'Cirurgiões-dentistas' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.006-4', descricao: 'Consulta médica' }
+                        ],
+                        numerador: 420,
+                        denominador: 500
+                    },
+                    {
+                        id: 'cr2',
+                        modulo: 'rua',
+                        tituloCurto: 'Pré-Natal eCR',
+                        tituloCompleto: 'Cuidado das gestantes identificadas pela eCR',
+                        arquivoVerbatim: 'Nota metodológica CR2 - Cuidado na gestação (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-consultorio-na-rua`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Assegurar pelo menos 3 consultas de pré-natal (uma por trimestre) e vacinação de dTPa para gestantes em situação de rua.',
+                        formula: 'Proporção = (Gestantes com Boas Práticas / Total eCR) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251', descricao: 'Médico' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.011-0', descricao: 'Consulta Pré-Natal' }
+                        ],
+                        numerador: 18,
+                        denominador: 20
+                    },
+                    {
+                        id: 'cr3',
+                        modulo: 'rua',
+                        tituloCurto: 'Rastreio de IST eCR',
+                        tituloCompleto: 'Rastreio de IST (HIV, Sífilis, Hepatites) pela equipe eCR',
+                        arquivoVerbatim: 'Nota metodológica CR3 - Rastreio de infecções sexualmente transmissíveis (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-consultorio-na-rua`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Promoção de testagem rápida e aconselhamento para HIV, Sífilis e Hepatites em populações flutuantes no território.',
+                        formula: 'Proporção = (Testagem Concluída / Total de Usuários) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiros' },
+                            { codigo: '3222', descricao: 'Técnicos e auxiliares de enfermagem' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.14.01.005-8', descricao: 'Teste rápido para anticorpos anti-HIV' }
+                        ],
+                        numerador: 310,
+                        denominador: 400
+                    },
+                    {
+                        id: 'cr4',
+                        modulo: 'rua',
+                        tituloCurto: 'Tuberculose eCR',
+                        tituloCompleto: 'Cuidado da pessoa com tuberculose pela eCR',
+                        arquivoVerbatim: 'Nota metodológica CR4 - Cuidado da pessoa com tuberculose (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-consultorio-na-rua`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitoramento contínuo de casos de tuberculose pulmonar ou laríngea por meio de exames e TDO longitudinal.',
+                        formula: 'Proporção = (Casos com Boas Práticas de Seguimento / Diagnósticos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235-05', descricao: 'Enfermeiro' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.04.019-2', descricao: 'Acompanhamento por TDO da tuberculose' }
+                        ],
+                        numerador: 12,
+                        denominador: 15
+                    },
+
+                    // SAÚDE RIBEIRINHA (R1-R6)
+                    {
+                        id: 'r1',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Mais Acesso eSFR',
+                        tituloCompleto: 'Mais Acesso à equipe de Saúde da Família Ribeirinha (eSFR)',
+                        arquivoVerbatim: 'R1 - Mais acesso à equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar a proporção de atendimentos de demanda programada da equipe fluvial/ribeirinha para garantir a longitudinalidade assistencial.',
+                        formula: 'Proporção = (Atendimentos Programados eSFR / Total de Atendimentos) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 50% e <= 70%',
+                        polaridade: 'Equilibrado',
+                        cbos: [
+                            { codigo: '2251-42', descricao: 'Médico da eSFR' },
+                            { codigo: '2235-65', descricao: 'Enfermeiro da eSFR' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.006-4', descricao: 'Consulta em Atenção Primária' }
+                        ],
+                        numerador: 600,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'r2',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Desenvolvimento Infantil',
+                        tituloCompleto: 'Cuidado no desenvolvimento infantil pela equipe eSFR',
+                        arquivoVerbatim: 'R2 - Cuidado no desenvolvimento infantil pela equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar o acompanhamento e as vacinas de crianças de até 2 anos de idade em territórios isolados de rios e florestas.',
+                        formula: 'Proporção = (Soma de Boas Práticas / Total de Crianças eSFR) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiras(os)' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.026-9', descricao: 'Avaliação do crescimento na puericultura' }
+                        ],
+                        numerador: 38,
+                        denominador: 50
+                    },
+                    {
+                        id: 'r3',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Pré-Natal eSFR',
+                        tituloCompleto: 'Cuidado na gestação e puerpério realizados pela eSFR',
+                        arquivoVerbatim: 'R3 - Cuidado na gestação e puerpério realizados pela equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Assegurar exames laboratoriais, consultas de enfermagem/médica e preventivo de saúde bucal para gestantes ribeirinhas.',
+                        formula: 'Proporção = (Soma de Boas Práticas eSFR / Total de Gestantes) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiras(os)' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.011-0', descricao: 'Consulta Pré-Natal' }
+                        ],
+                        numerador: 24,
+                        denominador: 30
+                    },
+                    {
+                        id: 'r4',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Diabetes eSFR',
+                        tituloCompleto: 'Cuidado da pessoa com diabetes realizado pela equipe eSFR',
+                        arquivoVerbatim: 'R4 - Cuidado da pessoa com diabetes realizado pela equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitorar a frequência de consultas e a prescrição de exames de HbA1c para indivíduos com diabetes no território fluvial.',
+                        formula: 'Proporção = (Soma das Boas Práticas / Total de Diabéticos eSFR) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiros' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.02.01.050-3', descricao: 'Dosagem de hemoglobina glicosilada' }
+                        ],
+                        numerador: 15,
+                        denominador: 20
+                    },
+                    {
+                        id: 'r5',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Hipertensão eSFR',
+                        tituloCompleto: 'Cuidado da pessoa com hipertensão pela equipe eSFR',
+                        arquivoVerbatim: 'R5 - Cuidado da pessoa com hipertensão pela equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Acompanhar a regularidade das consultas e aferições de pressão arterial para hipertensos em comunidades dispersas.',
+                        formula: 'Proporção = (Boas Práticas / Total de Hipertensos eSFR) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiras(os)' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.10.003-9', descricao: 'Aferição de pressão arterial' }
+                        ],
+                        numerador: 32,
+                        denominador: 40
+                    },
+                    {
+                        id: 'r6',
+                        modulo: 'ribeirinha',
+                        tituloCurto: 'Prevenção de Câncer eSFR',
+                        tituloCompleto: 'Cuidado da mulher na prevenção do câncer pela equipe eSFR',
+                        arquivoVerbatim: 'R6 - Cuidado da mulher na prevenção do câncer pela equipe de Saúde da Família Ribeirinha (eSFR).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-da-familia-ribeirinha`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Garantir preventivo de colo de útero em intervalo oportuno e vacinação contra HPV no território costeiro/marítimo.',
+                        formula: 'Proporção = (Boas Práticas de Prevenção / População Alvo) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2235', descricao: 'Enfermeiras(os)' },
+                            { codigo: '2251', descricao: 'Médicos' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '02.01.02.003-3', descricao: 'Coleta de citopatológico de colo de útero' }
+                        ],
+                        numerador: 22,
+                        denominador: 30
+                    },
+
+                    // SAÚDE BUCAL (B1-B6)
+                    {
+                        id: 'b1',
+                        modulo: 'bucal',
+                        tituloCurto: 'Primeira Consulta',
+                        tituloCompleto: 'Cobertura de primeira consulta programada por equipe de Saúde Bucal',
+                        arquivoVerbatim: 'Nota Metodológica B1 - Primeira consulta programada (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar o acesso e plano preventivo-terapêutico individualizado na primeira consulta odontológica programática.',
+                        formula: 'Proporção = (Pessoas com Primeira Consulta / População Vinculada) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 1.25%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista Clínico Geral' },
+                            { codigo: '2232-93', descricao: 'Cirurgião-Dentista da ESF' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.015-3', descricao: 'Primeira consulta odontológica programática' }
+                        ],
+                        numerador: 130,
+                        denominador: 10000
+                    },
+                    {
+                        id: 'b2',
+                        modulo: 'bucal',
+                        tituloCurto: 'Tratamento Concluído',
+                        tituloCompleto: 'Tratamento concluído por equipe de Saúde Bucal (eSB)',
+                        arquivoVerbatim: 'Nota Metodológica B2 - Tratamento concluído (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar a resolutividade através da proporção de tratamentos concluídos em relação às primeiras consultas programáticas no Siaps.',
+                        formula: 'Proporção = (Tratamentos Concluídos / Primeiras Consultas) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 75%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista Clínico Geral' },
+                            { codigo: '2232-93', descricao: 'Cirurgião-Dentista da ESF' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.01.01.015-3', descricao: 'Primeira Consulta Odontológica Programática' }
+                        ],
+                        numerador: 380,
+                        denominador: 500
+                    },
+                    {
+                        id: 'b3',
+                        modulo: 'bucal',
+                        tituloCurto: 'Taxa de Exodontia',
+                        tituloCompleto: 'Taxa de exodontia por equipe de Saúde Bucal (eSB)',
+                        arquivoVerbatim: 'Nota Metodológica B3 - Taxa de exodontia (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Monitorar a taxa de exodontia de dentes permanentes para induzir ações preventivas precoces e reabilitação.',
+                        formula: 'Taxa = (Exodontias Permanentes / Total de Procedimentos Individuais) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: >= 3% e < 10%',
+                        polaridade: 'Menor-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista Clínico Geral' },
+                            { codigo: '3224-05', descricao: 'Técnico em Saúde Bucal' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '04.14.02.013-8', descricao: 'Exodontia de dente permanente' }
+                        ],
+                        numerador: 45,
+                        denominador: 500
+                    },
+                    {
+                        id: 'b4',
+                        modulo: 'bucal',
+                        tituloCurto: 'Escovação Coletiva',
+                        tituloCompleto: 'Escovação supervisionada por eSB de crianças de 6 a 12 anos',
+                        arquivoVerbatim: 'Nota Metodológica B4 - Escovação supervisionada.pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Verificar a cobertura de escovação fluorada supervisionada para escolares de 6 a 12 anos vinculados.',
+                        formula: 'Proporção = (Crianças Beneficiadas / Total de Crianças de 6 a 12 anos vinculadas) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 1%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista' },
+                            { codigo: '3224-05', descricao: 'Técnico em Saúde Bucal' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '01.01.02.003-1', descricao: 'Ação coletiva de escovação dental supervisionada' }
+                        ],
+                        numerador: 120,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'b5',
+                        modulo: 'bucal',
+                        tituloCurto: 'Preventivos Odonto',
+                        tituloCompleto: 'Procedimentos odontológicos individuais preventivos por eSB',
+                        arquivoVerbatim: 'Nota Metodológica B5 - Procedimentos odontológicos preventivos (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Medir a proporção de procedimentos focados em preservação de estruturas e prevenção das cáries/doença periodontal.',
+                        formula: 'Proporção = (Procedimentos Preventivos / Total de Procedimentos Individuais) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: >= 65% e <= 85%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista Clínico Geral' },
+                            { codigo: '3224-05', descricao: 'Técnico em Saúde Bucal' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '01.01.02.007-4', descricao: 'Aplicação tópica de flúor' },
+                            { tipo: 'SIGTAP', codigo: '01.01.02.006-6', descricao: 'Aplicação de selante' }
+                        ],
+                        numerador: 650,
+                        denominador: 1000
+                    },
+                    {
+                        id: 'b6',
+                        modulo: 'bucal',
+                        tituloCurto: 'Tratamento ART',
+                        tituloCompleto: 'Tratamento Restaurador Atraumático (ART) por eSB',
+                        arquivoVerbatim: 'Nota Metodológica B6 - Tratamento restaurador atraumático (1).pdf',
+                        linkOficial: `${hubBaseUrl}/equipe-de-saude-bucal`,
+                        subTab: 'qualificacao',
+                        objetivo: 'Avaliar a proporção de adoção de técnicas restauradoras minimamente invasivas sem o uso de turbinas.',
+                        formula: 'Proporção = (Procedimentos ART / Total de Restaurações) * 100',
+                        periodicidade: 'Quadrimestral',
+                        parametro: 'Ótimo: > 8%',
+                        polaridade: 'Maior-Melhor',
+                        cbos: [
+                            { codigo: '2232-08', descricao: 'Cirurgião-Dentista Clínico Geral' }
+                        ],
+                        procedimentos: [
+                            { tipo: 'SIGTAP', codigo: '03.07.01.007-4', descricao: 'Tratamento restaurador atraumático (TRA/ART)' }
+                        ],
+                        numerador: 24,
+                        denominador: 200
+                    }
+                ],
+
+                // MÉTODOS INTERNOS
+                calcularEscoreCadastro() {
+                    let miciVal = this.nt35.mici * 0.75;
+                    let completoVal = this.nt35.completo * 1.5;
+                    let totalPonderado = miciVal + completoVal;
+                    let indice = (totalPonderado / this.nt35.parametro) * 100;
+                    
+                    let escore = 0.75;
+                    let classificacao = 'Regular';
+                    
+                    if (indice > 85) { escore = 3.00; classificacao = 'Ótimo'; }
+                    else if (indice >= 65) { escore = 2.25; classificacao = 'Bom'; }
+                    else if (indice >= 45) { escore = 1.50; classificacao = 'Suficiente'; }
+                    
+                    return { indice, escore, classificacao };
+                },
+
+                calcularEscoreAcompanhamento() {
+                    let A = this.nt35.sem * 1.0;
+                    let B = this.nt35.idade * 1.2;
+                    let C = this.nt35.vulnerabilidade * 1.3;
+                    let D = this.nt35.idadeVulnerabilidade * 2.5;
+                    let totalPonderado = A + B + C + D;
+                    let indice = (totalPonderado / this.nt35.parametro) * 100;
+                    
+                    let escore = 1.75;
+                    let classificacao = 'Regular';
+                    
+                    if (indice > 85) { escore = 7.00; classificacao = 'Ótimo'; }
+                    else if (indice >= 65) { escore = 5.25; classificacao = 'Bom'; }
+                    else if (indice >= 45) { escore = 3.50; classificacao = 'Suficiente'; }
+                    
+                    // Satisfação do Usuário (Pontos SUS Digital)
+                    let porc = (this.nt35.pesquisas / this.nt35.parametro) * 100;
+                    let extra = 0;
+                    if (porc >= 5) { extra = 0.30; }
+                    else if (porc > 0) { extra = 0.15; }
+                    
+                    escore = Math.min(7.00, escore + extra);
+                    
+                    return { indice, escore, classificacao, extra };
+                },
+
+                obterClassificacaoFinal() {
+                    let total = this.calcularEscoreCadastro().escore + this.calcularEscoreAcompanhamento().escore;
+                    if (total > 8.5) return 'Ótimo';
+                    if (total >= 7) return 'Bom';
+                    if (total >= 5) return 'Suficiente';
+                    return 'Regular';
+                },
+
+                calcularProporcaoFicha(item) {
+                    if (!item.denominador || item.denominador === 0) return '0.0';
+                    return ((item.numerador / item.denominador) * 100).toFixed(1);
+                },
+
+                obterClassificacaoFicha(item) {
+                    let prop = parseFloat(this.calcularProporcaoFicha(item));
+                    if (item.id === 'b3') { // Taxa de exodontia (Menor-Melhor)
+                        if (prop >= 3 && prop < 10) return 'Ótimo';
+                        if (prop >= 10 && prop < 12) return 'Bom';
+                        if (prop >= 12 && prop < 14) return 'Suficiente';
+                        return 'Regular';
+                    }
+                    if (item.id === 'c1' || item.id === 'r1') { // Mais Acesso AP
+                        if (prop > 50 && prop <= 70) return 'Ótimo';
+                        if (prop > 30 && prop <= 50) return 'Bom';
+                        if (prop > 10 && prop <= 30) return 'Suficiente';
+                        return 'Regular';
+                    }
+                    if (item.id === 'b1') { // Primeira Consulta Odonto
+                        if (prop > 1.25) return 'Ótimo';
+                        if (prop > 0.75) return 'Bom';
+                        if (prop > 0.25) return 'Suficiente';
+                        return 'Regular';
+                    }
+                    if (item.id === 'b4') { // Escovação Supervisionada
+                        if (prop > 1) return 'Ótimo';
+                        if (prop > 0.5) return 'Bom';
+                        if (prop > 0.25) return 'Suficiente';
+                        return 'Regular';
+                    }
+                    // Padrão Geral (Maior-Melhor)
+                    if (prop > 75) return 'Ótimo';
+                    if (prop > 50) return 'Bom';
+                    if (prop > 25) return 'Suficiente';
+                    return 'Regular';
+                },
+
+                mudarAba(id) {
+                    this.activeTab = id;
+                    this.searchQuery = '';
+                    this.searchResults = [];
+                    this.sidebarMobileOpen = false;
+                },
+
+                obterTituloTopo() {
+                    if (this.activeTab === 'inicio') return 'Painel de Gestão e Busca de Códigos';
+                    if (this.activeTab === 'nt30') return 'NT 30/2025: Vínculo e Acompanhamento Territorial';
+                    let item = this.faturamento.find(f => f.id === this.activeTab);
+                    return item ? item.id.toUpperCase() + ': ' + item.tituloCompleto : '';
+                },
+
+                copiarCodigo(texto) {
+                    let aux = document.createElement("input");
+                    aux.setAttribute("value", texto);
+                    document.body.appendChild(aux);
+                    aux.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(aux);
+                    
+                    this.toastMessage = "Código '" + texto + "' copiado!";
+                    this.toastShow = true;
+                    setTimeout(() => { this.toastShow = false; }, 2000);
+                },
+
+                processarBusca() {
+                    let query = this.searchQuery.trim().toLowerCase();
+                    if (query.length === 0) {
+                        this.searchResults = [];
+                        return;
+                    }
+                    let res = [];
+                    this.faturamento.forEach(ficha => {
+                        // Buscar nos CBOs
+                        ficha.cbos.forEach(cbo => {
+                            if (cbo.codigo.toLowerCase().includes(query) || cbo.descricao.toLowerCase().includes(query)) {
+                                res.push({
+                                    id: ficha.id,
+                                    tipo: 'CBO',
+                                    codigo: cbo.codigo,
+                                    descricao: cbo.descricao,
+                                    ficha: ficha.id.toUpperCase() + ' - ' + ficha.tituloCurto
+                                });
+                            }
+                        });
+                        // Buscar nos Procedimentos
+                        ficha.procedimentos.forEach(proc => {
+                            if (proc.codigo.toLowerCase().includes(query) || proc.descricao.toLowerCase().includes(query)) {
+                                res.push({
+                                    id: ficha.id,
+                                    tipo: proc.tipo,
+                                    codigo: proc.codigo,
+                                    descricao: proc.descricao,
+                                    ficha: ficha.id.toUpperCase() + ' - ' + ficha.tituloCurto
+                                });
+                            }
+                        });
+                    });
+                    this.searchResults = res;
+                },
+
+                irParaResultado(id) {
+                    this.mudarAba(id);
+                    let item = this.faturamento.find(f => f.id === id);
+                    if (item) {
+                        item.subTab = 'procedimentos';
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
